@@ -369,14 +369,20 @@ Rules:
 # ── Database initialisation (cached) ────────────────────────────────
 @st.cache_resource(show_spinner=False)
 def setup_database():
-    _here = os.path.dirname(os.path.abspath(__file__))
-    food_items = load_food_data(os.path.join(_here, 'FoodDataset.json'))
-    collection = create_similarity_search_collection(
-        "craveai_collection",
-        {"description": "CraveAI Streamlit RAG chatbot collection"},
-    )
-    populate_similarity_collection(collection, food_items)
-    return collection, food_items
+    try:
+        _here = os.path.dirname(os.path.abspath(__file__))
+        food_items = load_food_data(os.path.join(_here, 'FoodDataset.json'))
+        collection = create_similarity_search_collection(
+            "craveai_collection",
+            {"description": "CraveAI Streamlit RAG chatbot collection"},
+        )
+        populate_similarity_collection(collection, food_items)
+        return collection, food_items
+    except Exception as e:
+        import traceback
+        with open("setup_error.log", "w") as f:
+            f.write(traceback.format_exc())
+        raise e
 
 with st.spinner("Loading food database & building vector index…"):
     collection, food_items = setup_database()
@@ -435,9 +441,9 @@ with st.sidebar:
         </style>
     ''', unsafe_allow_html=True)
     if st.button("Stop Server & Quit", use_container_width=True, type="primary"):
-        st.markdown("**Goodbye!** Shutting down…")
+        st.markdown("**Goodbye!** Please close the terminal window to stop the server.")
         # Gracefully stop the Streamlit server
-        os._exit(0)
+        # os._exit(0)
 
 
 # ── Hero Banner ──────────────────────────────────────────────────────
