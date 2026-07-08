@@ -70,6 +70,50 @@ footer {
     visibility: hidden;
 }
 
+/* Force legible placeholder colors on text inputs */
+input::placeholder,
+textarea::placeholder,
+[data-testid="stChatInput"] textarea::placeholder,
+[data-testid="stChatInput"] textarea::placeholder * {
+    color: var(--text-muted) !important;
+    -webkit-text-fill-color: var(--text-muted) !important;
+    opacity: 0.7 !important;
+}
+
+/* Force light text color on widgets, widgets labels, sidebar text/span, and captions */
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] div,
+[data-testid="stSidebar"] small,
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] span {
+    color: var(--text-primary);
+}
+
+/* Captions should be muted color */
+[data-testid="stCaptionContainer"],
+[data-testid="stCaptionText"],
+.stCaptionContainer,
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+[data-testid="stSidebar"] [data-testid="stCaptionText"] {
+    color: var(--text-muted) !important;
+}
+
+/* Expander headers */
+details summary span,
+details summary p,
+details summary div {
+    color: var(--text-primary) !important;
+}
+
+/* Make sure sidebar brand overrides general color rules to stay gradient */
+.sidebar-brand {
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+
 /* ── Sidebar ────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
     background-color: #1a1b1c !important;
