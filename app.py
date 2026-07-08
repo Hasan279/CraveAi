@@ -60,7 +60,7 @@ st.markdown("""
     --gemini-gradient: linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%);
 }
 
-html, body, [data-testid="stApp"], [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMain"], [data-testid="stBottom"], .main, .block-container {
+html, body, [data-testid="stApp"], [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMain"], [data-testid="stMainBlockContainer"], [data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlockContainer"], .main, .block-container {
     font-family: 'Google Sans', 'Outfit', sans-serif !important;
     background-color: var(--bg-primary) !important;
     color: var(--text-primary) !important;
