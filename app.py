@@ -71,12 +71,27 @@ footer {
 }
 
 /* Force legible placeholder colors on text inputs */
-input::placeholder,
-textarea::placeholder,
-[data-testid="stChatInput"] textarea::placeholder,
-[data-testid="stChatInput"] textarea::placeholder * {
-    color: var(--text-muted) !important;
-    -webkit-text-fill-color: var(--text-muted) !important;
+input::placeholder {
+    color: #c4c7c5 !important;
+    -webkit-text-fill-color: #c4c7c5 !important;
+    opacity: 0.7 !important;
+}
+
+textarea::placeholder {
+    color: #c4c7c5 !important;
+    -webkit-text-fill-color: #c4c7c5 !important;
+    opacity: 0.7 !important;
+}
+
+[data-testid="stChatInput"] textarea::placeholder {
+    color: #c4c7c5 !important;
+    -webkit-text-fill-color: #c4c7c5 !important;
+    opacity: 0.7 !important;
+}
+
+[data-testid="stChatInput"] textarea::-webkit-input-placeholder {
+    color: #c4c7c5 !important;
+    -webkit-text-fill-color: #c4c7c5 !important;
     opacity: 0.7 !important;
 }
 
