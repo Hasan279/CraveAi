@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import sys
+import base64
 from dotenv import load_dotenv
 from google import genai
 
@@ -10,7 +11,6 @@ if not os.getenv("GEMINI_API_KEY") and hasattr(st, "secrets") and "GEMINI_API_KE
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 
-# Fix Windows console encoding for emoji printing
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
@@ -28,6 +28,12 @@ from enhanced_rag_chatbot import (
     prepare_context_for_llm,
     generate_fallback_response,
 )
+
+# ── Avatar definitions ───────────────────────────────────────────────
+_user_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><circle cx="18" cy="18" r="18" fill="#1e1f20"/><circle cx="18" cy="13" r="6" fill="#a8c7fa"/><ellipse cx="18" cy="30" rx="12" ry="8" fill="#a8c7fa"/></svg>'
+_bot_svg  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><circle cx="18" cy="18" r="18" fill="#1e1f20"/><path d="M18 7l2.5 8.5L29 18l-8.5 2.5L18 29l-2.5-8.5L7 18l8.5-2.5Z" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4285f4"/><stop offset="50%" stop-color="#9b72cb"/><stop offset="100%" stop-color="#d96570"/></linearGradient></defs></svg>'
+USER_AVATAR = f"data:image/svg+xml;base64,{base64.b64encode(_user_svg.encode()).decode()}"
+BOT_AVATAR  = f"data:image/svg+xml;base64,{base64.b64encode(_bot_svg.encode()).decode()}"
 
 # ── Page config ──────────────────────────────────────────────────────
 st.set_page_config(
@@ -60,7 +66,6 @@ html, body, [data-testid="stApp"] {
     color: var(--text-primary) !important;
 }
 
-/* ── Sidebar ────────────────────────────────────────────── */
 /* ── Sidebar ────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
     background-color: #1a1b1c !important;
@@ -178,7 +183,7 @@ details {
 /* ── Hero banner (Gemini Style) ─────────────────────────── */
 .hero-banner {
     padding: 4rem 1rem 2rem 1rem;
-    text-align: left;
+    text-align: center;
 }
 .gemini-greeting {
     font-size: 3.5rem;
@@ -211,30 +216,44 @@ details {
     100% { background-position: 0% 50%; }
 }
 
-/* ── Typing Indicator ───────────────────────────────────── */
-.typing-indicator {
+/* ── Blob Thinking Indicator ─────────────────────────────── */
+.blob-thinking {
     display: inline-flex;
     align-items: center;
-    background-color: var(--bg-card);
+    justify-content: center;
+    width: 82px;
+    height: 52px;
+    background: linear-gradient(135deg, #1e1f20, #2a2b2d);
     border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 14px 20px;
+    border-radius: 50% 40% 60% 30% / 40% 50% 30% 60%;
+    animation: blob-morph 3s ease-in-out infinite;
+    gap: 5px;
     margin-bottom: 1rem;
-    gap: 6px;
+    box-shadow: 0 4px 20px rgba(66, 133, 244, 0.12);
 }
-.typing-dot {
-    width: 8px;
-    height: 8px;
-    background-color: var(--text-muted);
-    border-radius: 50%;
-    animation: typing-bounce 1.4s infinite ease-in-out both;
-}
-.typing-dot:nth-child(1) { animation-delay: -0.32s; }
-.typing-dot:nth-child(2) { animation-delay: -0.16s; }
 
-@keyframes typing-bounce {
-    0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-    40% { transform: scale(1); opacity: 1; }
+@keyframes blob-morph {
+    0%,100% { border-radius: 50% 40% 60% 30% / 40% 50% 30% 60%; }
+    25%     { border-radius: 30% 60% 40% 70% / 60% 30% 70% 40%; }
+    50%     { border-radius: 70% 30% 50% 50% / 30% 70% 40% 60%; }
+    75%     { border-radius: 40% 60% 30% 70% / 50% 30% 60% 40%; }
+}
+
+.blob-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--accent-blue);
+    border-radius: 50%;
+    animation: blob-dot-pulse 1.4s infinite ease-in-out both;
+    flex-shrink: 0;
+}
+.blob-dot:nth-child(1) { animation-delay: -0.32s; }
+.blob-dot:nth-child(2) { animation-delay: -0.16s; }
+.blob-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes blob-dot-pulse {
+    0%, 80%, 100% { transform: scale(0.5); opacity: 0.4; }
+    40%           { transform: scale(1.1); opacity: 1; }
 }
 
 /* ── Result card ────────────────────────────────────────── */
@@ -431,15 +450,7 @@ with st.sidebar:
     st.divider()
 
     # Quit button
-    st.markdown('''
-        <style>
-        /* Force Red for the last primary button in the sidebar */
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
-            background-color: #d93025 !important;
-            color: #ffffff !important;
-        }
-        </style>
-    ''', unsafe_allow_html=True)
+
     if st.button("Stop Server & Quit", use_container_width=True, type="primary"):
         st.markdown("**Goodbye!** Please close the terminal window to stop the server.")
         # Gracefully stop the Streamlit server
@@ -489,13 +500,7 @@ if st.session_state.compare_mode:
     if st.button("Compare", use_container_width=True, type="primary"):
         if query_a.strip() and query_b.strip():
             typing_placeholder = st.empty()
-            typing_placeholder.markdown('''
-                <div class="typing-indicator">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-            ''', unsafe_allow_html=True)
+            typing_placeholder.markdown('<div class="blob-thinking"><div class="blob-dot"></div><div class="blob-dot"></div><div class="blob-dot"></div></div>', unsafe_allow_html=True)
             
             res_a = perform_similarity_search(collection, query_a.strip(), 3)
             res_b = perform_similarity_search(collection, query_b.strip(), 3)
@@ -520,7 +525,7 @@ if st.session_state.compare_mode:
 
 # ── Chat history display ─────────────────────────────────────────────
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    with st.chat_message(message["role"], avatar=USER_AVATAR if message["role"] == "user" else BOT_AVATAR):
         st.markdown(message["content"])
         if "results" in message and message["results"]:
             with st.expander("Detailed Search Results"):
@@ -532,18 +537,12 @@ for message in st.session_state.messages:
 if "pending_suggestion" in st.session_state:
     prompt = st.session_state.pop("pending_suggestion")
 
-    st.chat_message("user").markdown(prompt)
+    st.chat_message("user", avatar=USER_AVATAR).markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=BOT_AVATAR):
         typing_placeholder = st.empty()
-        typing_placeholder.markdown('''
-            <div class="typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        ''', unsafe_allow_html=True)
+        typing_placeholder.markdown('<div class="blob-thinking"><div class="blob-dot"></div><div class="blob-dot"></div><div class="blob-dot"></div></div>', unsafe_allow_html=True)
         
         rewritten = rewrite_query(prompt, st.session_state.messages)
         search_results = perform_similarity_search(collection, rewritten, 5)
@@ -569,18 +568,12 @@ if "pending_suggestion" in st.session_state:
 
 # ── Chat input ───────────────────────────────────────────────────────
 if prompt := st.chat_input("What are you craving today?"):
-    st.chat_message("user").markdown(prompt)
+    st.chat_message("user", avatar=USER_AVATAR).markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=BOT_AVATAR):
         typing_placeholder = st.empty()
-        typing_placeholder.markdown('''
-            <div class="typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        ''', unsafe_allow_html=True)
+        typing_placeholder.markdown('<div class="blob-thinking"><div class="blob-dot"></div><div class="blob-dot"></div><div class="blob-dot"></div></div>', unsafe_allow_html=True)
         
         rewritten = rewrite_query(prompt, st.session_state.messages)
         search_results = perform_similarity_search(collection, rewritten, 5)
